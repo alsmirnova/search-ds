@@ -185,44 +185,34 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     }
 
 
-    public void sss(Node curr) {
-        int h;
-        if (curr.height == 1) {
-            while (true) {
-                h = ++curr.height;
-                // h=curr.height;
-                int cmp = compare(curr.value, root.value);
-                if (cmp == 0) break;
-                curr = curr.parent;
-                if (curr.height > h) break;
-            }
-        }
-
-    }
-
-
     public void balancing(Node curr) {
         int dh;
         while (true) {
-            dh = curr.left.height - curr.right.height;
+            if (curr.left == null) dh = -curr.right.height;
+            else if (curr.right == null) dh = curr.left.height;
+            else {
+                dh = curr.left.height - curr.right.height;
+            }
             if (dh == 0) break;
             else if (Math.abs(dh) == 1) {
                 curr.height++;
-                curr = curr.parent;
+                if (curr != root) curr = curr.parent;
+                else break;
             } else if (Math.abs(dh) == 2) rotate(curr, dh);
         }
+
     }
 
     public void rotate(Node a, int dh) {
         Node b;
         int diffB;
         if (dh == -2) {
-            b=a.right;
+            b = a.right;
             diffB = b.left.height - b.right.height;
             if (diffB != 1) rotateLeft(a);
             else bigRotateLeft(a);
         } else if (dh == 2) {
-            b=a.left;
+            b = a.left;
             diffB = b.left.height - b.right.height;
             if (diffB != -1) rotateRight(a);
             else bigRotateRight(a);
@@ -321,5 +311,16 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     private int compare(E v1, E v2) {
         return comparator == null ? v1.compareTo(v2) : comparator.compare(v1, v2);
+    }
+
+
+    public static void main(String[] args) {
+        ISortedSet<Integer> set = new AVLTree<>();
+        set.add(10);
+        set.add(5);
+        set.add(15);
+        set.add(1);
+        System.out.println(set.first());
+        System.out.println(set.last());
     }
 }
