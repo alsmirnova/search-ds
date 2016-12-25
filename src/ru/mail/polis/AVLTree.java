@@ -188,11 +188,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     public void balancing(Node curr) {
         int dh;
         while (true) {
-            if (curr.left == null) dh = -curr.right.height;
-            else if (curr.right == null) dh = curr.left.height;
-            else {
-                dh = curr.left.height - curr.right.height;
-            }
+            dh = diff(curr);
             if (dh == 0) break;
             else if (Math.abs(dh) == 1) {
                 curr.height++;
@@ -208,15 +204,26 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         int diffB;
         if (dh == -2) {
             b = a.right;
-            diffB = b.left.height - b.right.height;
+            diffB = diff(b);
             if (diffB != 1) rotateLeft(a);
             else bigRotateLeft(a);
         } else if (dh == 2) {
             b = a.left;
-            diffB = b.left.height - b.right.height;
+            diffB = diff(b);
             if (diffB != -1) rotateRight(a);
             else bigRotateRight(a);
         }
+    }
+
+    public int diff(Node b) {
+        int dh;
+        if (b.left == null && b.right == null) dh=1;
+        else if (b.left == null) dh = -b.right.height;
+        else if (b.right == null) dh = b.left.height;
+        else {
+            dh = b.left.height - b.right.height;
+        }
+        return dh;
     }
 
 
@@ -224,8 +231,18 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         Node b = a.right;
         a.right = b.left;
         b.left = a;
-        a.height = Math.max(a.left.height, a.right.height);
-        b.height = Math.max(b.left.height, b.right.height);
+        a.height=setHeight(a);
+        b.height = setHeight(b);
+    }
+
+    public int setHeight(Node a) {
+        int h;
+        if (a.left != null && a.right != null) {
+            h = Math.max(a.left.height, a.right.height) + 1;
+        } else {
+            h = diff(a)+1;
+        }
+        return h;
     }
 
     public void bigRotateLeft(Node a) {
@@ -237,8 +254,8 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         Node b = a.left;
         a.left = b.right;
         b.right = a;
-        a.height = Math.max(a.left.height, a.right.height);
-        b.height = Math.max(b.left.height, b.right.height);
+        a.height=setHeight(a);
+        b.height = setHeight(b);
     }
 
     public void bigRotateRight(Node a) {
@@ -316,11 +333,11 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     public static void main(String[] args) {
         ISortedSet<Integer> set = new AVLTree<>();
-        set.add(10);
-        set.add(5);
-        set.add(15);
+        set.add(0);
         set.add(1);
-        System.out.println(set.first());
-        System.out.println(set.last());
+        set.add(2);
+        set.add(3);
+        set.add(4);
+        set.add(5);
     }
 }
