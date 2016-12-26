@@ -176,7 +176,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
                     }
                 }
             }
-            balancing(curr);
+            balancingAdd(curr);
         }
         size++;
 
@@ -185,7 +185,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     }
 
 
-    public void balancing(Node curr) {
+    public void balancingAdd(Node curr) {
         int dh;
         while (true) {
             dh = diff(curr);
@@ -264,6 +264,21 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     }
 
 
+    public void balancingRemove(Node curr) {
+        int dh;
+        while (true) {
+            dh = diff(curr);
+            if (Math.abs(dh) == 1) break;
+            else if (dh == 0) {
+                curr.height--;
+                if (curr != root) curr = curr.parent;
+                else break;
+            } else if (Math.abs(dh) == 2) rotate(curr, dh);
+        }
+
+    }
+
+
     @Override
     public boolean remove(E value) {
         if (value == null) {
@@ -274,6 +289,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         }
         Node parent = root;
         Node curr = root;
+        Node pRemoved; //parent removed
         int cmp;
         while ((cmp = compare(curr.value, value)) != 0) {
             parent = curr;
@@ -301,16 +317,20 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
             } else {
                 pNext.left = next.right;
             }
+            pRemoved=pNext;
             next.right = null;
         } else {
+            pRemoved=curr;
             if (curr.left != null) {
                 reLink(parent, curr, curr.left);
             } else if (curr.right != null) {
                 reLink(parent, curr, curr.right);
             } else {
                 reLink(parent, curr, null);
+                if (curr!=root) pRemoved=curr.parent;
             }
         }
+        balancingRemove(pRemoved);
         size--;
         return true;
     }
@@ -333,11 +353,10 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     public static void main(String[] args) {
         ISortedSet<Integer> set = new AVLTree<>();
-        set.add(0);
-        set.add(1);
-        set.add(2);
-        set.add(3);
-        set.add(4);
-        set.add(5);
+        for (int i = 0; i < 3; i++) {
+            boolean add = set.add(i);
+            boolean contains = set.contains(i);
+            System.out.println("i = " + i + ", add = " + add + ", contains = " + contains);
+        }
     }
 }
