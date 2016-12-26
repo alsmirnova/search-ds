@@ -33,6 +33,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         }
     }
 
+
     private Node root;
     private final static int K = 1; //for AVLTree
     private int size;
@@ -45,6 +46,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     public AVLTree(Comparator<E> comparator) {
         this.comparator = comparator;
     }
+
 
     @Override
     public E first() {
@@ -73,6 +75,10 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     @Override
     public int size() {
         return size;
+    }
+
+    public E root() {
+        return root.value;
     }
 
     @Override
@@ -217,7 +223,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     public int diff(Node b) {
         int dh;
-        if (b.left == null && b.right == null) dh=1;
+        if (b.left == null && b.right == null) dh = 0;
         else if (b.left == null) dh = -b.right.height;
         else if (b.right == null) dh = b.left.height;
         else {
@@ -230,8 +236,16 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     public void rotateLeft(Node a) {
         Node b = a.right;
         a.right = b.left;
+        if (b.left != null) b.left.parent = a;
         b.left = a;
-        a.height=setHeight(a);
+        if (a == root) root = b;
+        else {
+            b.parent = a.parent;
+            if (a.parent.left == a) a.parent.left = b;
+            else a.parent.right = b;
+        }
+        a.parent = b;
+        a.height = setHeight(a);
         b.height = setHeight(b);
     }
 
@@ -240,7 +254,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         if (a.left != null && a.right != null) {
             h = Math.max(a.left.height, a.right.height) + 1;
         } else {
-            h = diff(a)+1;
+            h = diff(a) + 1;
         }
         return h;
     }
@@ -253,8 +267,16 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
     public void rotateRight(Node a) {
         Node b = a.left;
         a.left = b.right;
+        if (b.right != null) b.right.parent = a;
         b.right = a;
-        a.height=setHeight(a);
+        if (a == root) root = b;
+        else {
+            b.parent = a.parent;
+            if (a.parent.left==a) a.parent.left=b;
+            else a.parent.right=b;
+        }
+        a.parent = b;
+        a.height = setHeight(a);
         b.height = setHeight(b);
     }
 
@@ -317,17 +339,17 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
             } else {
                 pNext.left = next.right;
             }
-            pRemoved=pNext;
+            pRemoved = pNext;
             next.right = null;
         } else {
-            pRemoved=curr;
+            pRemoved = curr;
             if (curr.left != null) {
                 reLink(parent, curr, curr.left);
             } else if (curr.right != null) {
                 reLink(parent, curr, curr.right);
             } else {
                 reLink(parent, curr, null);
-                if (curr!=root) pRemoved=curr.parent;
+                if (curr != root) pRemoved = curr.parent;
             }
         }
         balancingRemove(pRemoved);
@@ -353,10 +375,13 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     public static void main(String[] args) {
         ISortedSet<Integer> set = new AVLTree<>();
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 5; i++) {
             boolean add = set.add(i);
             boolean contains = set.contains(i);
             System.out.println("i = " + i + ", add = " + add + ", contains = " + contains);
         }
+        set.remove(2);
+        System.out.println(set.contains(2));
+
     }
 }
