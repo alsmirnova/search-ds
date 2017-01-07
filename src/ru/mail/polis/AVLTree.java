@@ -21,6 +21,9 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         public String toString() {
             final StringBuilder sb = new StringBuilder("N{");
             sb.append("d=").append(value);
+            if (parent != null) {
+                sb.append(", p=").append(parent);
+            }
             if (left != null) {
                 sb.append(", l=").append(left);
             }
@@ -198,9 +201,15 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
             if (dh == 0) break;
             else if (Math.abs(dh) == 1) {
                 curr.height++;
-                if (curr != root) curr = curr.parent;
-                else break;
-            } else if (Math.abs(dh) == 2) rotate(curr, dh);
+            } else if (Math.abs(dh) == 2) {
+                rotate(curr, dh);
+                curr = curr.parent;
+            }
+            if (curr.parent != null) curr = curr.parent;
+            else {
+                root = curr;
+                break;
+            }
         }
 
     }
@@ -235,14 +244,21 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
     public void rotateLeft(Node a) {
         Node b = a.right;
+        int cmp;
         a.right = b.left;
         if (b.left != null) b.left.parent = a;
         b.left = a;
-        if (a == root) root = b;
-        else {
+        cmp = compare(a.value, root.value);
+        if (cmp == 0) {
+            root = b;
+            root.parent = null;
+        } else {
             b.parent = a.parent;
-            if (a.parent.left == a) a.parent.left = b;
-            else a.parent.right = b;
+            if (a.parent.left != null) {
+                cmp = compare(a.parent.left.value, a.value);
+                if (cmp == 0) a.parent.left = b;
+                else a.parent.right = b;
+            } else if (a.parent.right != null) a.parent.right = b;
         }
         a.parent = b;
         a.height = setHeight(a);
@@ -254,7 +270,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         if (a.left != null && a.right != null) {
             h = Math.max(a.left.height, a.right.height) + 1;
         } else {
-            h = diff(a) + 1;
+            h = Math.abs(diff(a)) + 1;
         }
         return h;
     }
@@ -264,16 +280,23 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         rotateLeft(a);
     }
 
-    public void rotateRight(Node a) {
+    public void rotateRight(Node a) { /****/
         Node b = a.left;
+        int cmp;
         a.left = b.right;
         if (b.right != null) b.right.parent = a;
         b.right = a;
-        if (a == root) root = b;
-        else {
+        cmp = compare(a.value, root.value);
+        if (cmp == 0) {
+            root = b;
+            root.parent = null;
+        } else {
             b.parent = a.parent;
-            if (a.parent.left==a) a.parent.left=b;
-            else a.parent.right=b;
+            if (a.parent.left != null) {
+                cmp = compare(a.parent.left.value, a.value);
+                if (cmp == 0) a.parent.left = b;
+                else a.parent.right = b;
+            } else if (a.parent.right != null) a.parent.right = b;
         }
         a.parent = b;
         a.height = setHeight(a);
@@ -293,9 +316,15 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
             if (Math.abs(dh) == 1) break;
             else if (dh == 0) {
                 curr.height--;
-                if (curr != root) curr = curr.parent;
-                else break;
-            } else if (Math.abs(dh) == 2) rotate(curr, dh);
+            } else if (Math.abs(dh) == 2) {
+                rotate(curr, dh);
+                curr=curr.parent;
+            }
+            if (curr.parent != null) curr = curr.parent;
+            else {
+                root = curr;
+                break;
+            }
         }
 
     }
@@ -311,7 +340,7 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
         }
         Node parent = root;
         Node curr = root;
-        Node pRemoved; //parent removed
+        Node pRemote; //parent of remote node
         int cmp;
         while ((cmp = compare(curr.value, value)) != 0) {
             parent = curr;
@@ -339,31 +368,35 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
             } else {
                 pNext.left = next.right;
             }
-            pRemoved = pNext;
+            if (next.right != null) next.right.parent = pNext;
+
+            pRemote = pNext;
             next.right = null;
         } else {
-            pRemoved = curr;
+            pRemote = parent;
             if (curr.left != null) {
                 reLink(parent, curr, curr.left);
             } else if (curr.right != null) {
                 reLink(parent, curr, curr.right);
             } else {
                 reLink(parent, curr, null);
-                if (curr != root) pRemoved = curr.parent;
             }
         }
-        balancingRemove(pRemoved);
+        if (root != null) balancingRemove(pRemote);
         size--;
         return true;
     }
 
     private void reLink(Node parent, Node curr, Node child) {
         if (parent == curr) {
+            if (child != null && child.parent != null) child.parent = null;
             root = child;
         } else if (parent.left == curr) {
             parent.left = child;
+            if (child != null && child.parent != null) child.parent = parent;
         } else {
             parent.right = child;
+            if (child != null && child.parent != null) child.parent = parent;
         }
         curr.value = null;
     }
@@ -374,14 +407,24 @@ public class AVLTree<E extends Comparable<E>> implements ISortedSet<E> {
 
 
     public static void main(String[] args) {
+        Random random = new Random();
+        int LEN = 100;
+        int value;
         ISortedSet<Integer> set = new AVLTree<>();
-        for (int i = 0; i < 5; i++) {
-            boolean add = set.add(i);
-            boolean contains = set.contains(i);
-            System.out.println("i = " + i + ", add = " + add + ", contains = " + contains);
+
+        for (int i = 0; i < 10; i++) {
+            value = i; //(random.nextInt(1000));
+            System.out.print(i + ". " + value);
+            System.out.println(": " + set.add(value) + ", " + set.contains(value));
         }
-        set.remove(2);
-        System.out.println(set.contains(2));
+
+//        for (int value = 0; value < LEN; value++) {
+//            set.add(value);
+//        }
+//        for (int value = LEN; value >= 0; value--) {
+//            System.out.println(value + ": " + set.contains(value)
+//                    + ", " + set.remove(value) + ", " + set.contains(value));
+//        }
 
     }
 }
