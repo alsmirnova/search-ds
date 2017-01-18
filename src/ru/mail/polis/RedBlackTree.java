@@ -320,10 +320,12 @@ public class RedBlackTree<E extends Comparable<E>> implements ISortedSet<E> {
             color=next.isRed;
             if (pNext == curr) {
                 curr.right = next.right;
-                aRemote=curr;
             } else {
                 pNext.left = next.right;
-                aRemote=pNext;
+            }
+            aRemote=next.right;
+            if (aRemote==NIL) {
+                aRemote.parent=pNext;
             }
             next.right = NIL;
         } else {
@@ -337,6 +339,9 @@ public class RedBlackTree<E extends Comparable<E>> implements ISortedSet<E> {
             } else {
                 reLink(parent, curr, NIL);
                 aRemote=NIL;
+            }
+            if (aRemote==NIL) {
+                aRemote.parent=parent;
             }
         }
         if (color==false) {
@@ -362,84 +367,59 @@ public class RedBlackTree<E extends Comparable<E>> implements ISortedSet<E> {
     public void RemoveFixUp(Node x) {
         Node w;
         while ( x!=root && x.isRed==false) {
-            if (x==x.parent.left) {
-                w=x.parent.right;
-                if (w.isRed==true) {
-                    w.isRed=false;
-                    x.parent.isRed=true;
+            if (x == x.parent.left) {
+                w = x.parent.right;
+                if (w.isRed == true) {
+                    w.isRed = false;
+                    x.parent.isRed = true;
                     rotateLeft(x.parent);
-                    w=x.parent.right;
+                    w = x.parent.right;
                 }
-                if (w.left.isRed==false && w.right.isRed==false) {
-                    w.isRed=true;
-                    x=x.parent;
-                }
-                else if (w.right.isRed==false) {
-                    w.left.isRed=false;
-                    w.isRed=true;
+                if (w.left.isRed == false && w.right.isRed == false) {
+                    w.isRed = true;
+                    x = x.parent;
+                } else if (w.right.isRed == false) {
+                    w.left.isRed = false;
+                    w.isRed = true;
                     rotateRight(w);
-                    w=x.parent.right;
-                }
-                else {
-                    w.isRed=x.parent.isRed;
-                    x.parent.isRed=false;
-                    w.right.isRed=false;
+                    w = x.parent.right;
+                } else {
+                    w.isRed = x.parent.isRed;
+                    x.parent.isRed = false;
+                    w.right.isRed = false;
                     rotateLeft(x.parent);
-                    x=root;
+                    x = root;
+                }
+            } else {
+                w = x.parent.left;
+                if (w.isRed == true) {
+                    w.isRed = false;
+                    x.parent.isRed = true;
+                    rotateRight(x.parent);
+                    w = x.parent.left;
+                }
+                if (w.left.isRed == false && w.right.isRed == false) {
+                    w.isRed = true;
+                    x = x.parent;
+                } else if (w.left.isRed == false) {
+                    w.right.isRed = false;
+                    w.isRed = true;
+                    rotateLeft(w);// *
+                    w = x.parent.left;
+                } else {
+                    w.isRed = x.parent.isRed;
+                    x.parent.isRed = false;
+                    w.left.isRed = false;
+                    rotateRight(x.parent);
+                    x = root;
                 }
             }
-            else {
-                w=x.parent.left;
-                if (w.isRed==true) {
-                    w.isRed=false;
-                    x.parent.isRed=true;
-                    rotateRight(x.parent);
-                    w=x.parent.left;
-                }
-                if (w.left.isRed==false && w.right.isRed==false) {
-                    w.isRed=true;
-                    x=x.parent;
-                }
-                else if (w.left.isRed==false) {
-                    w.right.isRed=false;
-                    w.isRed=true;
-                    rotateLeft(w);
-                    w=x.parent.left;
-                }
-                else {
-                    w.isRed=x.parent.isRed;
-                    x.parent.isRed=false;
-                    w.right.isRed=false;
-                    rotateRight(x.parent);
-                    x=root;
-                }
-            }
-            x.isRed=false;
         }
+            x.isRed=false;
+
     }
 
     private int compare(E v1, E v2) {
         return comparator == null ? v1.compareTo(v2) : comparator.compare(v1, v2);
-    }
-
-    public static void main(String[] args) {
-        Random random = new Random();
-        int LEN = 100;
-       int value;
-        ISortedSet<Integer> set = new RedBlackTree<>();
-
-        for (int i = 0; i < 10; i++) {
-            value = (random.nextInt(10));
-            System.out.print(i + ". " + value);
-            System.out.println(": " + set.add(value) + ", " + set.contains(value));
-        }
-        System.out.println("----------------------------------------------------");
-        for (int i = 0; i < 10; i++) {
-            value = (random.nextInt(10));
-            System.out.print(i + ". " + value);
-            System.out.println(": "+ set.remove(value)+", "+set.contains(value));
-        }
-
-
     }
 }
